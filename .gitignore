@@ -1,3 +1,25 @@
+# Секреты
 .env
-.venv/
+ 
+# Python
 __pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+ 
+# Виртуальные окружения
+.venv/
+venv/
+env/
+ 
+# Базы данных и логи
+*.db
+*.sqlite3
+*.log
+ 
+# IDE и ОС
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
