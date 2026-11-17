@@ -1,7 +1,7 @@
 from config import MEDALS, MIN_GAMES, TOP_HEROES, HEROES_DICT, RECENT_MATCHES
 from html import escape
 
-# ---------- форматирование ----------
+# ---------- форматирование текста----------
 def format_rank(rank_tier) -> str:
     if not rank_tier:
         return "Калибровка"

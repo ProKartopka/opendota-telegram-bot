@@ -81,7 +81,7 @@ cp .env.example .env
 ### 4. Запустите бота
 
 ```bash
-python bot.py
+python main.py
 ```
 
 ## Команды бота
@@ -96,12 +96,20 @@ python bot.py
 
 ```
 .
-├── bot.py             # код бота
-├── requirements.txt   # зависимости
+├── main.py            # запуск бота
+├── api.py             # работа с API
+├── config.py          # константы, логирование, .env
+├── formatters.py      # форматирование текста
+├── handlers.py        # хендлеры
+├── keyboards.py       # кнопки
+├── view.py            # тексты вкладок профиля
 ├── db.py              # база данных
+├── requirements.txt   # зависимости
 ├── .env.example       # пример конфигурации
 ├── .gitignore
-└── README.md
+├── README.md
+└── docs/
+    └── demo.gif        
 ```
 
 ## Планы по развитию
