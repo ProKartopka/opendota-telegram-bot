@@ -2,9 +2,7 @@ import asyncio, aiohttp
 
 from html import escape
 from aiogram import Bot, Dispatcher, Router
-from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram.filters.callback_data import CallbackData
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import Message, CallbackQuery
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
 from aiogram.fsm.state import State, StatesGroup
@@ -14,6 +12,7 @@ from db import init_db, add_link
 from config import OPENDOTA_API, MIN_GAMES, HTTP_HEADERS, BOT_TOKEN, STEAM_API_KEY, log
 from formatters import format_rank, format_heroes, format_matches
 from api import fetch, extract_steam32id, load_heroes
+from keyboards import view_keyboard, ViewCB
 
 # ---------- env check ----------
 if not BOT_TOKEN:
@@ -30,10 +29,6 @@ dp.include_router(router)
 class DotaProfile(StatesGroup):
     waiting_for_steam_id = State()
     waiting_for_link = State()
-
-class ViewCB(CallbackData, prefix="me"):
-    action: str
-    steam_id: str
 
 # ---------- форматирование ----------
 async def build_profile_text(session: aiohttp.ClientSession, steam_id: str):
@@ -92,14 +87,7 @@ async def build_view(action: str, steam_id: str, session: aiohttp.ClientSession)
             return f"Не удалось получить статистику."
     return log.error("Выбрана неверная вкладка!")
 
-def view_keyboard(steam_id: str, active: str) -> InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-    for section, title in (("profile", "Профиль"), ("heroes", "Сигнатурные герои"), ("matches", "Последние матчи")):
-        label = f"• {title}" if section == active else title
-        builder.button(text=label, callback_data=ViewCB(action=section, steam_id=steam_id))
-    builder.adjust(2)
-    builder.row(InlineKeyboardButton(text="DotaBuff", url=f"https://www.dotabuff.com/players/{steam_id}"))
-    return builder.as_markup()
+
 # ---------- хендлеры ----------
 @router.message(Command("start"))
 async def cmd_start(message: Message, state: FSMContext):

@@ -1,9 +1,7 @@
 import aiohttp, asyncio, re
 from config import log, STEAM_API_KEY, STEAM64_OFFSET, OPENDOTA_API, HEROES_DICT
 
-
 # ---------- работа с API ----------
-
 async def fetch(session: aiohttp.ClientSession, url: str, params: dict | None = None):
     """Универсальный GET-запрос, возвращает JSON или None."""
     try:
