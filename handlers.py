@@ -6,10 +6,10 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram import Router
 from config import OPENDOTA_API
-from db import add_link
+from db import add_link, get_links
 from api import extract_steam32id, fetch
 from view import build_profile_text, build_view
-from keyboards import view_keyboard, ViewCB
+from keyboards import profile_keyboard, ViewCB, me_keyboard
 
 # ---------- fsm  ----------
 class DotaProfile(StatesGroup):
@@ -40,7 +40,7 @@ async def cmd_stats(message: Message, state: FSMContext):
 
 # ---------- /link ----------
 @router.message(Command("link"))
-async def link(message: Message, state: FSMContext):
+async def cmd_link(message: Message, state: FSMContext):
     await state.clear()
     await message.answer("Для привязки профиля отправьте цифры, ссылку на Steam или Dotabuff.")
     await state.set_state(DotaProfile.waiting_for_link)
@@ -70,7 +70,7 @@ async def process_steam_id(message: Message, state: FSMContext, session: aiohttp
     if not final_text:
         await wait_msg.edit_text("Профиль не найден или скрыт.")
         return
-    await wait_msg.edit_text(final_text, parse_mode="HTML", reply_markup=view_keyboard(steam_id, active="profile"))
+    await wait_msg.edit_text(final_text, parse_mode="HTML", reply_markup=profile_keyboard(steam_id, active="profile"))
     await state.clear()
 
 # ---------- привязка ----------
@@ -112,8 +112,19 @@ async def linking(message: Message, state: FSMContext, session: aiohttp.ClientSe
 async def stats_button(callback: CallbackQuery, callback_data: ViewCB, session: aiohttp.ClientSession):
     text = await build_view(steam_id=callback_data.steam_id, action=callback_data.action, session=session)
     try:
-        await callback.message.edit_text(text, parse_mode="HTML", reply_markup=view_keyboard(callback_data.steam_id, active=callback_data.action))
+        await callback.message.edit_text(text, parse_mode="HTML", reply_markup=profile_keyboard(callback_data.steam_id, active=callback_data.action))
     except TelegramBadRequest as e:
         if "message is not modified" not in str(e):
             raise
     await callback.answer()
+
+
+# ---------- /me ----------
+@router.message(Command("me"))
+async def cmd_me(message: Message, state: FSMContext):
+    await state.clear()
+    ids = await get_links(message.from_user.id)
+    if not ids:
+        await message.answer("Вы еще не привязали аккаунт!\nДля привязки воспользуйтесь командой /link")
+    else:
+        await message.answer("Выберите аккаунт: ", reply_markup=me_keyboard(ids))
