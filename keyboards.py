@@ -16,9 +16,17 @@ def profile_keyboard(steam_id: str, active: str) -> InlineKeyboardMarkup:
     builder.row(InlineKeyboardButton(text="DotaBuff", url=f"https://www.dotabuff.com/players/{steam_id}"))
     return builder.as_markup()
 
-def me_keyboard(ids: list[str]) -> InlineKeyboardMarkup:
+def me_keyboard(idnames: list[tuple[str, str | None]]) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    for steam_id in ids:
-        builder.button(text=f"{steam_id}", callback_data=ViewCB(action="profile", steam_id=steam_id))
+    for steam_id, name in idnames:
+        label = name or steam_id
+        builder.button(text=label, callback_data=ViewCB(action="profile", steam_id=steam_id))
     builder.adjust(1)
+    return builder.as_markup()
+
+def skip_keyboard(callback_data: str = "skip_name") -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.add(
+        InlineKeyboardButton(text="Пропустить", callback_data=callback_data),
+    )
     return builder.as_markup()

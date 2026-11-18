@@ -4,17 +4,19 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
-from aiogram import Router
+from aiogram import Router, F
 from config import OPENDOTA_API
-from db import add_link, get_links
+from db import add_link, get_links, add_name
 from api import extract_steam32id, fetch
 from view import build_profile_text, build_view
-from keyboards import profile_keyboard, ViewCB, me_keyboard
+from keyboards import profile_keyboard, ViewCB, me_keyboard, skip_keyboard
+
 
 # ---------- fsm  ----------
 class DotaProfile(StatesGroup):
     waiting_for_steam_id = State()
     waiting_for_link = State()
+    waiting_for_name = State()
 
 router = Router()
 
@@ -44,6 +46,16 @@ async def cmd_link(message: Message, state: FSMContext):
     await state.clear()
     await message.answer("Для привязки профиля отправьте цифры, ссылку на Steam или Dotabuff.")
     await state.set_state(DotaProfile.waiting_for_link)
+
+# ---------- /me ----------
+@router.message(Command("me"))
+async def cmd_me(message: Message, state: FSMContext):
+    await state.clear()
+    idnames = await get_links(message.from_user.id)
+    if not idnames:
+        await message.answer("Вы еще не привязали аккаунт!\nДля привязки воспользуйтесь командой /link")
+    else:
+        await message.answer("Выберите аккаунт:", reply_markup=me_keyboard(idnames))
 
 # ---------- ответ после /stats ----------
 @router.message(DotaProfile.waiting_for_steam_id)
@@ -101,11 +113,13 @@ async def linking(message: Message, state: FSMContext, session: aiohttp.ClientSe
         return # состояние сохраняем, чтобы можно было попробовать ещё раз
     if await add_link(message.from_user.id, steam_id):
         await wait_msg.edit_text("✅ Аккаунт успешно привязан.")
+        await state.update_data(steam_id=steam_id)
+        await state.set_state(DotaProfile.waiting_for_name)
+        await message.answer("Введите имя: ", reply_markup=skip_keyboard())
+        return
     else:
         await wait_msg.edit_text("Вы уже привязали этот аккаунт.")
         return
-
-    await state.clear()
 
 # ---------- кнопка в профиле ----------
 @router.callback_query(ViewCB.filter())
@@ -119,12 +133,32 @@ async def stats_button(callback: CallbackQuery, callback_data: ViewCB, session: 
     await callback.answer()
 
 
-# ---------- /me ----------
-@router.message(Command("me"))
-async def cmd_me(message: Message, state: FSMContext):
+@router.message(DotaProfile.waiting_for_name)
+async def naming(message: Message, state: FSMContext):
+    if not message.text:
+        await message.answer(
+            "Слишком длинный текст или не тот формат сообщения.\n"
+            "Отправьте имя текстом!"
+        )
+        return
+
+    text = message.text.strip()
+
+    if not (1 <= len(text) <= 16):
+        await message.answer("❌ Длина текста должна быть от 1 до 16 символов.")
+        return
+
+    data = await state.get_data()
+    steam_id = data["steam_id"]
+
+    await add_name(message.from_user.id,steam_id, text)
+    await message.answer("✅ Имя успешно привязано к аккаунту.")
     await state.clear()
-    ids = await get_links(message.from_user.id)
-    if not ids:
-        await message.answer("Вы еще не привязали аккаунт!\nДля привязки воспользуйтесь командой /link")
-    else:
-        await message.answer("Выберите аккаунт: ", reply_markup=me_keyboard(ids))
+
+@router.callback_query(DotaProfile.waiting_for_name, F.data == "skip_name")
+async def skip_name(callback: CallbackQuery, state: FSMContext):
+    if isinstance(callback.message, Message):
+        await callback.message.edit_text("Название не задано!\n"
+                                         "На кнопках будет отображаться Steam ID аккаунта.")
+    await state.clear()
+    await callback.answer()
