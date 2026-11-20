@@ -202,7 +202,3 @@ async def unlink_button(callback: CallbackQuery, callback_data: UnlinkCB):
             raise
 
     await callback.answer()
-
-@router.message(Command("privet"))
-async def privet(message: Message):
-    await message.answer("⛓️Привет Дашенька))) ето я зхскурсед🩸🩸🩸 1000-7 ебать))... хех.. ода... я такой загадочный)) ⛓𓌹*♰*𓌺⛓ Желаю счастья здоровья и всего хорошего)))⛓️")
