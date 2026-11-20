@@ -112,7 +112,7 @@ python main.py
 ├── requirements.txt   # зависимости
 ├── .env.example       # пример конфигурации
 ├── .gitignore
-├── readme.md
+├── README.md
 └── docs/
     └── demo.gif        
 ```
