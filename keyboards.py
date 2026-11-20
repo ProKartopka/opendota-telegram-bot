@@ -1,3 +1,5 @@
+from cProfile import label
+
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -5,6 +7,9 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 # ---------- кнопки ----------
 class ViewCB(CallbackData, prefix="me"):
     action: str
+    steam_id: str
+
+class UnlinkCB(CallbackData, prefix="unl"):
     steam_id: str
 
 def profile_keyboard(steam_id: str, active: str) -> InlineKeyboardMarkup:
@@ -24,9 +29,17 @@ def me_keyboard(idnames: list[tuple[str, str | None]]) -> InlineKeyboardMarkup:
     builder.adjust(1)
     return builder.as_markup()
 
+def unlink_keyboard(idnames: list[tuple[str, str | None]]) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    for steam_id, name in idnames:
+        label = name or steam_id
+        builder.button(text=label, callback_data=UnlinkCB(steam_id=steam_id))
+    builder.adjust(1)
+    return builder.as_markup()
+
 def skip_keyboard(callback_data: str = "skip_name") -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.add(
-        InlineKeyboardButton(text="Пропустить", callback_data=callback_data),
+        InlineKeyboardButton(text="Пропустить", callback_data=callback_data)
     )
     return builder.as_markup()

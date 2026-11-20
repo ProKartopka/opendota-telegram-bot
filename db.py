@@ -1,5 +1,6 @@
 import aiosqlite
 import asyncio
+from config import log
 
 DB_NAME = "userdata.db"
 
@@ -42,6 +43,18 @@ async def add_name(tg_id, steam_id, name):
         )
         await conn.commit()
         return cur.rowcount > 0
+
+async def del_link(tg_id, steam_id):
+    async with aiosqlite.connect(DB_NAME) as conn:
+        try:
+            cur = await conn.execute("""
+            DELETE FROM userdata WHERE tg_id = ? AND steam_id = ?
+            """, (tg_id, steam_id))
+            await conn.commit()
+            return cur.rowcount > 0
+        except aiosqlite.Error as e:
+            log.error(f"Ошибка при удалении! ({e})")
+            return None
 
 async def main():
     await init_db()
