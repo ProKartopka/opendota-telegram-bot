@@ -73,7 +73,7 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-| Переменная      | Откуда взять                                                                 | Обязательна |
+| Переменная      | Откуда взять                                                                  | Обязательна |
 |-----------------|-------------------------------------------------------------------------------|-------------|
 | `BOT_TOKEN`     | Создайте бота у [@BotFather](https://t.me/BotFather)                          | да          |
 | `STEAM_API_KEY` | [steamcommunity.com/dev/apikey](https://steamcommunity.com/dev/apikey)        | нет*        |
