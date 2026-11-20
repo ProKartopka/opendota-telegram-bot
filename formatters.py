@@ -9,6 +9,8 @@ def format_rank(rank_tier) -> str:
     medal_name = MEDALS.get(medal_id, "Неизвестно")
     if medal_id == 8:  # у Титана звёзд нет
         return medal_name
+    if medal_id > 8:
+        return medal_name
     return f"{medal_name} {stars}"
 
 def format_heroes(data_player_heroes) -> str | None:
@@ -44,7 +46,10 @@ def format_matches(data_matches) -> str | None:
         assists = match.get("assists", 0)
         minutes, seconds = divmod(match.get("duration", 0), 60)
         is_radiant = match.get("player_slot", 0) < 128
-        radiant_win = bool(match.get("radiant_win"))
-        win = "✅ Победа" if is_radiant == radiant_win else "❌ Поражение"
+        radiant_win = match.get("radiant_win")
+        if radiant_win is None:
+            win = "❓ Неизвестно"
+        else:
+            win = "✅ Победа" if is_radiant == bool(radiant_win) else "❌ Поражение"
         lines.append(f"<b>{win}</b>: {escape(hero_name)} - {kills}/{deaths}/{assists} • {minutes}:{seconds:02d}\n")
     return "\n".join(lines)
