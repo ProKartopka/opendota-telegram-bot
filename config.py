@@ -20,6 +20,7 @@ MEDALS = {
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 STEAM_API_KEY = os.getenv("STEAM_API_KEY")
+DB_FILE = os.getenv("DB_FILE", "userdata.db")
 
 # ---------- log ----------
 logging.basicConfig(
